@@ -1,14 +1,15 @@
 //!Implementation of [`Processor`] and Intersection of control flow
 use super:: TaskStatus;
 use super::TaskControlBlock;
+use crate::arch::Instruction;
 use crate::sync::UPSafeCell;
 use crate::task::{processor, context::EnvContext};
 use crate::mm::vm::KERNEL_SPACE;
 use crate::trap::TrapContext;
 use alloc::sync::Arc;
+use hal::instruction::InstructionHal;
 use lazy_static::*;
 use log::*;
-use crate::arch::riscv64::interrupts::{disable_interrupt, enable_interrupt};
 use crate::{logging, mm};
 
 ///Processor management structure
@@ -76,7 +77,7 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 
 /// Switch to the given task ,change page_table temporarily
 pub fn switch_to_current_task(task: &mut Arc<TaskControlBlock>, env: &mut EnvContext) {
-    unsafe{disable_interrupt();}
+    unsafe{ Instruction::disable_interrupt();}
     unsafe {env.auto_sum();}
     //info!("already in switch");
     let processor = PROCESSOR.exclusive_access();
@@ -93,7 +94,7 @@ pub fn switch_to_current_task(task: &mut Arc<TaskControlBlock>, env: &mut EnvCon
 
 /// Switch out current task,change page_table back to kernel_space
 pub fn switch_out_current_task(env: &mut EnvContext){
-    unsafe {disable_interrupt()};
+    unsafe { Instruction::disable_interrupt()};
     unsafe {env.auto_sum()};
     unsafe {
         KERNEL_SPACE.exclusive_access().page_table.enable();
@@ -106,7 +107,7 @@ pub fn switch_out_current_task(env: &mut EnvContext){
 }
 /// Switch to the kernel task,change sum bit temporarily
 pub fn switch_to_current_kernel(env: &mut EnvContext) {
-    unsafe{disable_interrupt();}
+    unsafe{ Instruction::disable_interrupt();}
     let processor = PROCESSOR.exclusive_access();
     processor.change_env(env);
     core::mem::swap(processor.env_mut(), env);

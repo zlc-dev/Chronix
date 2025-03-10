@@ -37,6 +37,8 @@ extern crate alloc;
 #[macro_use]
 extern crate bitflags;
 
+extern crate hal;
+
 use log::*;
 
 #[path = "boards/qemu.rs"]
@@ -62,6 +64,7 @@ mod executor;
 mod async_utils;
 
 use core::arch::global_asm;
+
 
 // global_asm!(include_str!("entry.asm"));
 /// clear BSS segment

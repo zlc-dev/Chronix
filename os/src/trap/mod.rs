@@ -13,6 +13,7 @@
 //! to [`syscall()`].
 mod context;
 
+use crate::arch::Instruction;
 use crate::async_utils::yield_now;
 use crate::config::TRAP_CONTEXT;
 use crate::mm::{VirtAddr, vm::{PageFaultAccessType, VmSpacePageFaultExt}};
@@ -23,8 +24,8 @@ use crate::task::{
 use crate::task::processor::current_trap_cx;
 use crate::timer::set_next_trigger;
 use core::arch::{asm, global_asm};
-use crate::arch::riscv64::interrupts::disable_interrupt;
 use alloc::task;
+use hal::instruction::InstructionHal;
 use log::{info, warn};
 use riscv::register::{
     mtvec::TrapMode,
@@ -156,7 +157,7 @@ pub async fn trap_handler()  {
 /// finally, jump to new addr of __restore asm function
 pub fn trap_return() {
     unsafe{
-        disable_interrupt();
+        Instruction::disable_interrupt();
     }
     //info!("trap return, user sp {:#x}, kernel sp {:#x}", current_trap_cx().x[2], current_trap_cx().kernel_sp);
     set_user_trap_entry();
